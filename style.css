@@ -199,7 +199,8 @@ main {
 
 .hero {
     border-radius: 14px;
-    min-height: 280px;
+    min-height: 380px;
+    max-height: 520px;
     padding: 36px;
     display: flex;
     flex-direction: column;
@@ -208,7 +209,6 @@ main {
     background: linear-gradient(90deg,#0b1124dd,#0b112455),linear-gradient(135deg,#6b5b2a,#1c2a24);
     margin-bottom: 30px;
 }
-
 .hero h1 {
     font-size: 46px;
 }
@@ -1518,6 +1518,12 @@ input:focus, select:focus, textarea:focus {
 }
 
 @media (max-width:600px) {
+    .hero {
+        min-height: 220px;
+        max-height: none;
+        background-position: center 25% !important;
+    }
+
     #seats {
         grid-template-columns: repeat(15, 30px);
         overflow-x: auto;

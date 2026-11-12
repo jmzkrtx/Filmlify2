@@ -330,7 +330,7 @@ async function loadBackdrops() {
       banners[i].style.backgroundImage =
         "linear-gradient(90deg, #0b1124dd, #0b112455), url(" + BACKDROP_URL + item.backdrop_path + ")";
       banners[i].style.backgroundSize = "cover";
-      banners[i].style.backgroundPosition = "center";
+      banners[i].style.backgroundPosition = "center 30%";
     }
   }
 }
@@ -1510,6 +1510,7 @@ document.getElementById("mFavorite").onclick = function () {
   if (exists) {
     favs = favs.filter(function (f) { return f.media_type + "-" + f.id !== key; });
     showMessage("Removed from your favorites.");
+    cloudListRemove("favorites", key);                        // ← NEW
   } else {
     var same = favs.filter(function (f) { return f.media_type === current.media_type; }).length;
     if (same >= 5) {
@@ -1518,13 +1519,12 @@ document.getElementById("mFavorite").onclick = function () {
     }
     favs.push(slim(current));
     showMessage("Added to your favorites!");
+    cloudListAdd("favorites", current);                        // ← NEW
   }
   saveList("filmlify_favorites", favs);
   renderProfile();
   paintFavoriteButton();
 };
-renderProfile();
-
 // Login page: fill the left side with real movie posters (trending this week)
 async function loadBrandPosters() {
   var box = document.getElementById("brandPosters");
@@ -1985,10 +1985,12 @@ async function syncFromCloud() {
   try {
     var wl = await db("watchlist?user_id=eq." + u.id + "&select=*&order=created_at.desc");
     var wd = await db("watched?user_id=eq." + u.id + "&select=*&order=created_at.desc");
+    var fv = await db("favorites?user_id=eq." + u.id + "&select=*&order=created_at.desc");   // ← NEW
     var rv = await db("reviews?user_id=eq." + u.id + "&select=*&order=created_at.asc");
     var old = getList("filmlify_reviews");
     saveList("filmlify_watchlist", wl.map(fromRow));
-    saveList("filmlify_watched", wd.map(fromRow));
+    saveList("filmlify_watched",   wd.map(fromRow));
+    saveList("filmlify_favorites", fv.map(fromRow));            // ← NEW
     saveList("filmlify_reviews", rv.map(function (r) {
       var o = old.find(function (x) { return x.key === r.tmdb_key; }) || {};
       return { id: r.local_id || r.id, key: r.tmdb_key, title: r.title, poster: r.poster || "", genres: o.genres,
