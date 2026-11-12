@@ -2126,7 +2126,7 @@ input:focus, select:focus, textarea:focus {
     outline-offset: 4px;
 }
 
-#profile .block {
+#profile .block, #member .block {
     scroll-margin-top: 90px;
 }
 
@@ -2177,4 +2177,8 @@ input:focus, select:focus, textarea:focus {
 
 #pmBody .item, #pmBody h3 {
     margin-top: 8px;
+}
+
+.slot-poster.static {
+    cursor: default;
 }
