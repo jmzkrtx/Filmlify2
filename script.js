@@ -1045,7 +1045,7 @@ async function fillEpisodes() {
     var response = await fetch(TMDB_URL + "/trending/tv/week?api_key=" + TMDB_KEY);
     if (!response.ok) { throw new Error("TMDB answered with error " + response.status); }
     var data = await response.json();
-    var shows = (data.results || []).slice(0, 12);          // look at the 12 most trending shows
+    var shows = (data.results || []).slice(0, 18);          // look at the 18 most trending shows
 
     // ask TMDB for each show's newest episode
     var found = await Promise.all(shows.map(async function (show) {
@@ -1054,7 +1054,7 @@ async function fillEpisodes() {
       var episode = episodeThisWeek(await r.json());
       return episode ? { show: show, episode: episode } : null;
     }));
-    found = found.filter(Boolean).slice(0, 5);
+    found = found.filter(Boolean).slice(0, 10);
     if (found.length === 0) { return; }                     // keep the typed rows
 
     list.replaceChildren();
