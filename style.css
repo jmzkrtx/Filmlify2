@@ -2233,3 +2233,19 @@ input:focus, select:focus, textarea:focus {
         gap: 7px;
     }
 }
+
+
+/* ===== BROWSE PAGE: results wrap into a grid (so "Load more" adds rows below) ===== */
+.row.wrap {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    scroll-snap-type: none;
+}
+
+#browseGrid {
+    gap: 18px 14px;
+}
+
+#loadMore[hidden] {
+    display: none;
+}
