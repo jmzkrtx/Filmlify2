@@ -784,7 +784,10 @@ document.addEventListener("click", function (e) {            // click anywhere e
   if (!e.target.closest(".search-wrap")) { hideSuggestions(); }
 });
 document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape") { hideSuggestions(); closeMovie(); }
+  if (e.key === "Escape") {
+    hideSuggestions();
+    if (document.getElementById("modal").classList.contains("open")) { closeMovie(); } else { closeListModal(); }
+  }
 });
 
 
@@ -2340,3 +2343,980 @@ loadMyBookings();
 // Keep the seat map fresh while the Theater page is open (other people may book seats)
 setInterval(function () { if (location.hash === "#theater" && el("bookTitle").textContent) { loadBookedSeats(); } }, 15000);
 window.addEventListener("focus", function () { if (location.hash === "#theater" && el("bookTitle").textContent) { loadBookedSeats(); } });
+
+/* ============ TOP 10 TV SHOWS SLIDESHOW ============ */
+// Every <div class="hero"> inside #tvSlideshow is one slide.
+// Arrows, dots, and auto-play (every 6 seconds) are added here.
+(function () {
+  var box = document.getElementById("tvSlideshow");
+  if (!box) { return; }
+  var slides = Array.from(box.querySelectorAll(".hero"));
+  var current = 0;
+  var timer = null;
+
+  // arrows
+  var prev = document.createElement("button");
+  prev.className = "slide-arrow prev";
+  prev.textContent = "\u2039";
+  prev.setAttribute("aria-label", "Previous show");
+  var next = document.createElement("button");
+  next.className = "slide-arrow next";
+  next.textContent = "\u203A";
+  next.setAttribute("aria-label", "Next show");
+
+  // dots
+  var dotBox = document.createElement("div");
+  dotBox.className = "slide-dots";
+  var dots = slides.map(function (slide, i) {
+    var dot = document.createElement("button");
+    dot.setAttribute("aria-label", "Go to show " + (i + 1));
+    dot.onclick = function () { show(i); restart(); };
+    dotBox.appendChild(dot);
+    return dot;
+  });
+
+  box.appendChild(prev);
+  box.appendChild(next);
+  box.appendChild(dotBox);
+
+  function show(i) {
+    current = (i + slides.length) % slides.length;
+    slides.forEach(function (slide, n) {
+      slide.classList.toggle("active", n === current);
+      dots[n].classList.toggle("active", n === current);
+    });
+  }
+
+  function restart() {
+    clearInterval(timer);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+    timer = setInterval(function () { show(current + 1); }, 6000);
+  }
+
+  prev.onclick = function () { show(current - 1); restart(); };
+  next.onclick = function () { show(current + 1); restart(); };
+  box.addEventListener("mouseenter", function () { clearInterval(timer); });   // pause while hovering
+  box.addEventListener("mouseleave", restart);
+
+  show(0);
+  restart();
+})();
+
+
+/* ============ CLICKABLE LISTS AND POPULAR DIRECTORS ============ */
+// Every list on the site: a title, whether it holds movies or TV shows, and its titles with their year.
+// To add a film to a list, add [ "Title", year ] to its items. (The year helps TMDB pick the right one.)
+var LISTS = {
+ "crime-drama": {
+  "title": "Masterpiece Crime Drama",
+  "kind": "movie",
+  "sub": "Lists For You",
+  "items": [
+   [
+    "The Godfather",
+    1972
+   ],
+   [
+    "The Godfather Part II",
+    1974
+   ],
+   [
+    "Goodfellas",
+    1990
+   ],
+   [
+    "Heat",
+    1995
+   ],
+   [
+    "Scarface",
+    1983
+   ],
+   [
+    "Pulp Fiction",
+    1994
+   ],
+   [
+    "City of God",
+    2002
+   ],
+   [
+    "The Departed",
+    2006
+   ],
+   [
+    "Casino",
+    1995
+   ],
+   [
+    "Once Upon a Time in America",
+    1984
+   ],
+   [
+    "Infernal Affairs",
+    2002
+   ],
+   [
+    "Chinatown",
+    1974
+   ],
+   [
+    "Se7en",
+    1995
+   ],
+   [
+    "Reservoir Dogs",
+    1992
+   ]
+  ]
+ },
+ "psych-thrillers": {
+  "title": "Psychological Thrillers with Plot Twists",
+  "kind": "movie",
+  "sub": "Lists For You",
+  "items": [
+   [
+    "Shutter Island",
+    2010
+   ],
+   [
+    "Fight Club",
+    1999
+   ],
+   [
+    "The Sixth Sense",
+    1999
+   ],
+   [
+    "Memento",
+    2000
+   ],
+   [
+    "The Prestige",
+    2006
+   ],
+   [
+    "Gone Girl",
+    2014
+   ],
+   [
+    "Black Swan",
+    2010
+   ],
+   [
+    "Prisoners",
+    2013
+   ],
+   [
+    "Oldboy",
+    2003
+   ],
+   [
+    "Identity",
+    2003
+   ],
+   [
+    "The Usual Suspects",
+    1995
+   ],
+   [
+    "Se7en",
+    1995
+   ]
+  ]
+ },
+ "scifi-cinema": {
+  "title": "Essential Sci-fi Cinema",
+  "kind": "movie",
+  "sub": "Lists For You",
+  "items": [
+   [
+    "Metropolis",
+    1927
+   ],
+   [
+    "2001: A Space Odyssey",
+    1968
+   ],
+   [
+    "Star Wars",
+    1977
+   ],
+   [
+    "Alien",
+    1979
+   ],
+   [
+    "Blade Runner",
+    1982
+   ],
+   [
+    "Back to the Future",
+    1985
+   ],
+   [
+    "Terminator 2: Judgment Day",
+    1991
+   ],
+   [
+    "The Matrix",
+    1999
+   ],
+   [
+    "Inception",
+    2010
+   ],
+   [
+    "Interstellar",
+    2014
+   ],
+   [
+    "Arrival",
+    2016
+   ],
+   [
+    "Blade Runner 2049",
+    2017
+   ],
+   [
+    "Dune",
+    2021
+   ]
+  ]
+ },
+ "dark-thrillers": {
+  "title": "Dark Thrillers & Mystery Masterpiece",
+  "kind": "movie",
+  "sub": "Featured Movie Lists",
+  "items": [
+   [
+    "Rear Window",
+    1954
+   ],
+   [
+    "Vertigo",
+    1958
+   ],
+   [
+    "Chinatown",
+    1974
+   ],
+   [
+    "The Silence of the Lambs",
+    1991
+   ],
+   [
+    "Se7en",
+    1995
+   ],
+   [
+    "L.A. Confidential",
+    1997
+   ],
+   [
+    "Mulholland Drive",
+    2001
+   ],
+   [
+    "Mystic River",
+    2003
+   ],
+   [
+    "Memories of Murder",
+    2003
+   ],
+   [
+    "Zodiac",
+    2007
+   ],
+   [
+    "Shutter Island",
+    2010
+   ],
+   [
+    "Prisoners",
+    2013
+   ],
+   [
+    "Gone Girl",
+    2014
+   ],
+   [
+    "Nightcrawler",
+    2014
+   ]
+  ]
+ },
+ "mcu-infinity": {
+  "title": "Complete MCU Infinity Saga",
+  "kind": "movie",
+  "sub": "Featured Movie Lists",
+  "items": [
+   [
+    "Iron Man",
+    2008
+   ],
+   [
+    "The Incredible Hulk",
+    2008
+   ],
+   [
+    "Iron Man 2",
+    2010
+   ],
+   [
+    "Thor",
+    2011
+   ],
+   [
+    "Captain America: The First Avenger",
+    2011
+   ],
+   [
+    "The Avengers",
+    2012
+   ],
+   [
+    "Iron Man 3",
+    2013
+   ],
+   [
+    "Thor: The Dark World",
+    2013
+   ],
+   [
+    "Captain America: The Winter Soldier",
+    2014
+   ],
+   [
+    "Guardians of the Galaxy",
+    2014
+   ],
+   [
+    "Avengers: Age of Ultron",
+    2015
+   ],
+   [
+    "Ant-Man",
+    2015
+   ],
+   [
+    "Captain America: Civil War",
+    2016
+   ],
+   [
+    "Doctor Strange",
+    2016
+   ],
+   [
+    "Guardians of the Galaxy Vol. 2",
+    2017
+   ],
+   [
+    "Spider-Man: Homecoming",
+    2017
+   ],
+   [
+    "Thor: Ragnarok",
+    2017
+   ],
+   [
+    "Black Panther",
+    2018
+   ],
+   [
+    "Avengers: Infinity War",
+    2018
+   ],
+   [
+    "Ant-Man and the Wasp",
+    2018
+   ],
+   [
+    "Captain Marvel",
+    2019
+   ],
+   [
+    "Avengers: Endgame",
+    2019
+   ],
+   [
+    "Spider-Man: Far From Home",
+    2019
+   ]
+  ]
+ },
+ "neo-noir": {
+  "title": "Neo-Noir Cinema Essential",
+  "kind": "movie",
+  "sub": "Featured Movie Lists",
+  "items": [
+   [
+    "Chinatown",
+    1974
+   ],
+   [
+    "Taxi Driver",
+    1976
+   ],
+   [
+    "Body Heat",
+    1981
+   ],
+   [
+    "Blade Runner",
+    1982
+   ],
+   [
+    "Blood Simple",
+    1984
+   ],
+   [
+    "L.A. Confidential",
+    1997
+   ],
+   [
+    "Fargo",
+    1996
+   ],
+   [
+    "Memento",
+    2000
+   ],
+   [
+    "Mulholland Drive",
+    2001
+   ],
+   [
+    "Collateral",
+    2004
+   ],
+   [
+    "Sin City",
+    2005
+   ],
+   [
+    "Brick",
+    2005
+   ],
+   [
+    "Drive",
+    2011
+   ],
+   [
+    "Nightcrawler",
+    2014
+   ]
+  ]
+ },
+ "perfect-finales": {
+  "title": "Shows with Perfect Series Finales",
+  "kind": "tv",
+  "sub": "by @wembaby • Essential Drama ♥ 14.2k",
+  "items": [
+   [
+    "M*A*S*H",
+    1972
+   ],
+   [
+    "Cowboy Bebop",
+    1998
+   ],
+   [
+    "Six Feet Under",
+    2001
+   ],
+   [
+    "The Shield",
+    2002
+   ],
+   [
+    "Avatar: The Last Airbender",
+    2005
+   ],
+   [
+    "Friday Night Lights",
+    2006
+   ],
+   [
+    "Mad Men",
+    2007
+   ],
+   [
+    "Breaking Bad",
+    2008
+   ],
+   [
+    "Parks and Recreation",
+    2009
+   ],
+   [
+    "Gravity Falls",
+    2012
+   ],
+   [
+    "Halt and Catch Fire",
+    2014
+   ],
+   [
+    "Better Call Saul",
+    2015
+   ],
+   [
+    "Fleabag",
+    2016
+   ]
+  ]
+ },
+ "mind-bending": {
+  "title": "Mind-Bending Mystery & Thrillers",
+  "kind": "tv",
+  "sub": "by @tyresehaliburnout • Suspense ♥ 9.8k",
+  "items": [
+   [
+    "Twin Peaks",
+    1990
+   ],
+   [
+    "Lost",
+    2004
+   ],
+   [
+    "Sherlock",
+    2010
+   ],
+   [
+    "Black Mirror",
+    2011
+   ],
+   [
+    "Hannibal",
+    2013
+   ],
+   [
+    "Broadchurch",
+    2013
+   ],
+   [
+    "True Detective",
+    2014
+   ],
+   [
+    "The Leftovers",
+    2014
+   ],
+   [
+    "Fargo",
+    2014
+   ],
+   [
+    "Mr. Robot",
+    2015
+   ],
+   [
+    "Westworld",
+    2016
+   ],
+   [
+    "Dark",
+    2017
+   ],
+   [
+    "Mindhunter",
+    2017
+   ],
+   [
+    "Severance",
+    2022
+   ]
+  ]
+ },
+ "scifi-worldbuilding": {
+  "title": "Best Sci-Fi Worldbuilding",
+  "kind": "tv",
+  "sub": "by @lebwrongsend • Futuristic ♥ 4.8k",
+  "items": [
+   [
+    "Star Trek: The Next Generation",
+    1987
+   ],
+   [
+    "Babylon 5",
+    1993
+   ],
+   [
+    "Firefly",
+    2002
+   ],
+   [
+    "Battlestar Galactica",
+    2004
+   ],
+   [
+    "Doctor Who",
+    2005
+   ],
+   [
+    "Fringe",
+    2008
+   ],
+   [
+    "The Expanse",
+    2015
+   ],
+   [
+    "Stranger Things",
+    2016
+   ],
+   [
+    "Westworld",
+    2016
+   ],
+   [
+    "The Mandalorian",
+    2019
+   ],
+   [
+    "Love, Death & Robots",
+    2019
+   ],
+   [
+    "Foundation",
+    2021
+   ],
+   [
+    "Arcane",
+    2021
+   ],
+   [
+    "Andor",
+    2022
+   ],
+   [
+    "Silo",
+    2023
+   ]
+  ]
+ },
+ "crime-sagas": {
+  "title": "Dark & Gritty Crime Sagas",
+  "kind": "tv",
+  "sub": "by @kyrieyearning • Masterpieces ♥ 3.2k",
+  "items": [
+   [
+    "The Sopranos",
+    1999
+   ],
+   [
+    "The Wire",
+    2002
+   ],
+   [
+    "The Shield",
+    2002
+   ],
+   [
+    "Breaking Bad",
+    2008
+   ],
+   [
+    "Sons of Anarchy",
+    2008
+   ],
+   [
+    "Boardwalk Empire",
+    2010
+   ],
+   [
+    "Justified",
+    2010
+   ],
+   [
+    "Peaky Blinders",
+    2013
+   ],
+   [
+    "Banshee",
+    2013
+   ],
+   [
+    "Gomorrah",
+    2014
+   ],
+   [
+    "Narcos",
+    2015
+   ],
+   [
+    "Better Call Saul",
+    2015
+   ],
+   [
+    "Ozark",
+    2017
+   ],
+   [
+    "Mindhunter",
+    2017
+   ]
+  ]
+ },
+ "animated-sagas": {
+  "title": "Top-Tier Animated Sagas",
+  "kind": "tv",
+  "sub": "by @oganobatayo • Anime & Animation ♥ 16.6k",
+  "items": [
+   [
+    "Neon Genesis Evangelion",
+    1995
+   ],
+   [
+    "Cowboy Bebop",
+    1998
+   ],
+   [
+    "One Piece",
+    1999
+   ],
+   [
+    "Samurai Jack",
+    2001
+   ],
+   [
+    "Avatar: The Last Airbender",
+    2005
+   ],
+   [
+    "Death Note",
+    2006
+   ],
+   [
+    "Fullmetal Alchemist: Brotherhood",
+    2009
+   ],
+   [
+    "Steins;Gate",
+    2011
+   ],
+   [
+    "Hunter x Hunter",
+    2011
+   ],
+   [
+    "The Legend of Korra",
+    2012
+   ],
+   [
+    "Gravity Falls",
+    2012
+   ],
+   [
+    "Attack on Titan",
+    2013
+   ],
+   [
+    "Rick and Morty",
+    2013
+   ],
+   [
+    "BoJack Horseman",
+    2014
+   ],
+   [
+    "Arcane",
+    2021
+   ]
+  ]
+ },
+ "miniseries": {
+  "title": "Peak TV Miniseries Masterpieces",
+  "kind": "tv",
+  "sub": "by @austinrebound • Limited Series ♥ 11.2k",
+  "items": [
+   [
+    "Band of Brothers",
+    2001
+   ],
+   [
+    "Angels in America",
+    2003
+   ],
+   [
+    "The Pacific",
+    2010
+   ],
+   [
+    "Sharp Objects",
+    2018
+   ],
+   [
+    "Chernobyl",
+    2019
+   ],
+   [
+    "When They See Us",
+    2019
+   ],
+   [
+    "Normal People",
+    2020
+   ],
+   [
+    "The Queen's Gambit",
+    2020
+   ],
+   [
+    "Mare of Easttown",
+    2021
+   ],
+   [
+    "Baby Reindeer",
+    2024
+   ],
+   [
+    "Adolescence",
+    2025
+   ]
+  ]
+ }
+};
+
+var listTitleCache = {};
+var listToken = 0;      // changes every time a pop-up opens, so an old slow load can never fill a new pop-up
+
+// Find one title on TMDB. Tries the exact year first, then without the year.
+async function lookupTitle(title, year, type) {
+  var key = type + "|" + title + "|" + year;
+  if (key in listTitleCache) { return listTitleCache[key]; }
+  async function ask(useYear) {
+    var yearPart = useYear ? (type === "movie" ? "&year=" : "&first_air_date_year=") + year : "";
+    var response = await fetch(TMDB_URL + "/search/" + type + "?query=" + encodeURIComponent(title) + yearPart + "&api_key=" + TMDB_KEY);
+    if (!response.ok) { throw new Error("TMDB answered with error " + response.status); }
+    var data = await response.json();
+    return (data.results || []).find(function (r) { return r.poster_path; }) || null;
+  }
+  var found = null;
+  try {
+    found = (await ask(true)) || (await ask(false));
+    if (found) { found.media_type = type; }
+  } catch (error) {
+    console.error("Could not look up '" + title + "':", error);
+  }
+  listTitleCache[key] = found;
+  return found;
+}
+
+// Show the pop-up with a title, some text, and an empty grid
+function openListModal(title, meta, heading) {
+  document.getElementById("lTitle").textContent = title;
+  document.getElementById("lMeta").textContent = meta || "";
+  document.getElementById("lDesc").textContent = "";
+  document.getElementById("lActions").replaceChildren();
+  document.getElementById("lPic").hidden = true;
+  document.getElementById("lHeading").textContent = heading || "";
+  document.getElementById("lGrid").replaceChildren();
+  document.getElementById("listModal").classList.add("open");
+  document.getElementById("listModal").querySelector(".modal-box").scrollTop = 0;
+}
+function closeListModal() { document.getElementById("listModal").classList.remove("open"); }
+
+function setGridNote(text) {
+  var grid = document.getElementById("lGrid");
+  grid.replaceChildren();
+  var note = document.createElement("p");
+  note.className = "list-note";
+  note.textContent = text;
+  grid.appendChild(note);
+}
+
+// ----- A movie/TV list: fill the grid with poster cards (6 at a time, in order) -----
+async function openList(id) {
+  var list = LISTS[id];
+  if (!list) { return; }
+  var token = ++listToken;
+  var noun = list.kind === "tv" ? "Shows" : "Films";
+  openListModal(list.title, list.items.length + " " + noun + " • " + list.sub, "Click any poster for details");
+  setGridNote("Loading...");
+  var grid = document.getElementById("lGrid");
+  var shown = 0;
+  for (var i = 0; i < list.items.length; i += 6) {
+    var batch = await Promise.all(list.items.slice(i, i + 6).map(function (it) {
+      return lookupTitle(it[0], it[1], list.kind);
+    }));
+    if (token !== listToken) { return; }          // another pop-up was opened meanwhile
+    if (shown === 0) { grid.replaceChildren(); }
+    batch.forEach(function (m) {
+      if (m) { grid.appendChild(makeCard(m)); shown++; }
+    });
+  }
+  if (shown === 0) { setGridNote("Sorry, this list could not be loaded. Check your internet connection and try again."); }
+}
+
+// ----- A director: photo, short biography, and the films they directed -----
+async function openDirector(name) {
+  var token = ++listToken;
+  openListModal(name, "Director", "Films directed");
+  setGridNote("Loading...");
+  var person = await searchPerson(name);
+  if (token !== listToken) { return; }
+  if (!person) { setGridNote("Sorry, no details found for " + name + "."); return; }
+
+  document.getElementById("lPic").style.backgroundImage = "url(" + PROFILE_URL + person.profile_path + ")";
+  document.getElementById("lPic").hidden = false;
+  var follow = document.createElement("button");
+  follow.className = "btn small follow-btn";
+  follow.dataset.name = name;
+  document.getElementById("lActions").appendChild(follow);
+  paintFollowButtons();
+
+  try {
+    var response = await fetch(TMDB_URL + "/person/" + person.id + "?append_to_response=movie_credits&api_key=" + TMDB_KEY);
+    if (!response.ok) { throw new Error("TMDB answered with error " + response.status); }
+    var data = await response.json();
+    if (token !== listToken) { return; }
+
+    var facts = ["Director"];
+    if (data.birthday) { facts.push("Born " + data.birthday.slice(0, 4)); }
+    if (data.place_of_birth) { facts.push(data.place_of_birth); }
+    document.getElementById("lMeta").textContent = facts.join(" • ");
+
+    var bio = (data.biography || "").trim();
+    if (bio.length > 650) { bio = bio.slice(0, 650).replace(/\s+\S*$/, "") + "..."; }
+    document.getElementById("lDesc").textContent = bio || "No biography available.";
+
+    var seen = {};
+    var films = ((data.movie_credits || {}).crew || []).filter(function (c) {
+      if (c.job !== "Director" || !c.poster_path || !c.release_date || seen[c.id]) { return false; }
+      seen[c.id] = true;
+      return true;
+    }).sort(function (a, b) { return b.vote_count - a.vote_count; }).slice(0, 12);
+
+    var grid = document.getElementById("lGrid");
+    grid.replaceChildren();
+    if (films.length === 0) { setGridNote("No films found."); return; }
+    films.forEach(function (m) { m.media_type = "movie"; grid.appendChild(makeCard(m)); });
+  } catch (error) {
+    console.error("Could not load director " + name + ":", error);
+    setGridNote("Sorry, this director's films could not be loaded. Try again in a moment.");
+  }
+}
+
+// Clicking a list or a director (the follow button keeps doing its own job)
+document.addEventListener("click", function (e) {
+  var link = e.target.closest(".list-link");
+  if (!link || e.target.closest(".follow-btn")) { return; }
+  if (link.dataset.list) { openList(link.dataset.list); }
+  else if (link.dataset.director) { openDirector(link.dataset.director); }
+});
+
+// Make them reachable with the keyboard too (Tab, then Enter or Space)
+document.querySelectorAll(".list-link").forEach(function (el) {
+  el.tabIndex = 0;
+  el.setAttribute("role", "button");
+  el.addEventListener("keydown", function (e) {
+    if ((e.key === "Enter" || e.key === " ") && e.target === el) { e.preventDefault(); el.click(); }
+  });
+});
+
+document.getElementById("closeListModal").onclick = closeListModal;
+document.getElementById("listModal").onclick = function (e) { if (e.target === this) { closeListModal(); } };
