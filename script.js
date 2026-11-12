@@ -423,7 +423,7 @@ function cardStep(row) {
   return Math.max(1, Math.floor(row.clientWidth / one)) * one;
 }
 
-var allRows = document.querySelectorAll(".row");
+var allRows = document.querySelectorAll(".row:not(.wrap)");   // wrapped grids (Browse) need no slider arrows
 
 allRows.forEach(function (row) {
   // wrap the row in a box so the arrows can sit on top of it
