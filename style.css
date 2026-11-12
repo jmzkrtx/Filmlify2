@@ -1997,7 +1997,7 @@ input:focus, select:focus, textarea:focus {
     outline: 2px solid var(--accent);
 }
 
-.box.list-link h3 {
+.three > .box.list-link h3 {
     color: var(--accent);
 }
 
@@ -2032,4 +2032,149 @@ input:focus, select:focus, textarea:focus {
 #lDesc {
     max-height: 150px;
     overflow-y: auto;
+}
+
+
+/* ----- Edit Profile pop-up, member pages, clickable stats ----- */
+.edit-box {
+    max-width: 480px;
+}
+
+.edit-box label {
+    display: block;
+    margin: 16px 0 6px;
+    font-weight: bold;
+}
+
+.edit-box input[type=text] {
+    width: 100%;
+}
+
+.edit-box textarea {
+    min-height: 80px;
+}
+
+.edit-photo {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin: 12px 0 4px;
+}
+
+.edit-photo .avatar {
+    width: 96px;
+    height: 96px;
+    font-size: 38px;
+    flex: none;
+}
+
+.edit-photo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.edit-photo-actions small {
+    flex-basis: 100%;
+    opacity: 0.8;
+}
+
+.edit-username {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-username span {
+    font-size: 18px;
+    opacity: 0.7;
+}
+
+.edit-error {
+    color: #ff8a8a;
+    min-height: 1.3em;
+    margin: 12px 0 0;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.avatar.has-photo, .mini-avatar.has-photo {
+    background-size: cover;
+    background-position: center;
+    font-size: 0;
+}
+
+.stat-link {
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.stat-link:hover, .stat-link:focus-visible {
+    color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.stat-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+
+#profile .block {
+    scroll-margin-top: 90px;
+}
+
+.flash-section {
+    animation: flashSection 1.4s ease;
+}
+
+@keyframes flashSection {
+    0%, 60% { box-shadow: 0 0 0 3px var(--accent); border-radius: 10px; }
+    100% { box-shadow: 0 0 0 3px transparent; border-radius: 10px; }
+}
+
+.person-row {
+    cursor: pointer;
+    gap: 12px;
+}
+
+.person-row:hover {
+    border-color: var(--accent);
+}
+
+.person-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.mini-avatar {
+    width: 42px;
+    height: 42px;
+    flex: none;
+    border-radius: 50%;
+    background: #3a4488;
+    display: grid;
+    place-items: center;
+    font-weight: bold;
+}
+
+.user-link {
+    cursor: pointer;
+    color: var(--accent);
+}
+
+.user-link:hover {
+    text-decoration: underline;
+}
+
+#pmBody .item, #pmBody h3 {
+    margin-top: 8px;
 }
