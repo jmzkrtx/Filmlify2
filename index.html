@@ -440,13 +440,35 @@
       <button class="btn small" id="uFollow" hidden>Follow</button>
     </div>
     <div class="stats">
-      <div class="stat-link" data-ustat="followers"><b id="uStatFollowers">0</b>Followers</div>
-      <div class="stat-link" data-ustat="following"><b id="uStatFollowing">0</b>Following</div>
-      <div><b id="uStatReviews">0</b>Reviews</div>
+      <div class="stat-link" data-ustat="followers"><b id="uStatFollowers">0</b>Followers</div><div class="stat-link" data-ustat="following"><b id="uStatFollowing">0</b>Following</div><div class="stat-link" data-ustat="watched"><b id="uStatWatched">0</b>Watched</div>
+      <div class="stat-link" data-ustat="reviews"><b id="uStatReviews">0</b>Reviews</div><div class="stat-link" data-ustat="watchlist"><b id="uStatWatchlist">0</b>Watchlist</div>
     </div>
   </div>
-  <section class="block"><h2>Recent Reviews</h2>
-    <div id="uReviews"></div>
+
+  <div class="two">
+    <div>
+      <section class="block"><h2>Favorite Films</h2>
+        <div class="row" id="uFavFilms"></div>
+      </section>
+      <section class="block"><h2>Favorite TV Shows</h2>
+        <div class="row" id="uFavShows"></div>
+      </section>
+      <section class="block"><h2>Recent Reviews</h2>
+        <div id="uReviews"></div>
+      </section>
+    </div>
+    <div>
+      <section class="block"><h2>Favorite Genre</h2><div class="box" id="uGenreBars"></div>
+      </section>
+      <section class="block"><h2>Custom Lists</h2><div class="box" id="uCustomLists"></div>
+      </section>
+    </div>
+  </div>
+  <section class="block"><h2>Watchlist <small id="uWlCount"></small></h2>
+    <div class="row" id="uWatchlistRow"></div>
+  </section>
+  <section class="block"><h2>Watched <small id="uWdCount"></small></h2>
+    <div class="row" id="uWatchedRow"></div>
   </section>
 </div>
 
