@@ -73,9 +73,9 @@
       </div>
     </section>
     <section class="block"><h2>Lists For You</h2><div class="box">
-      <div class="item"><span>Masterpiece Crime Drama</span><small>28 Films</small></div>
-      <div class="item"><span>Psychological Thrillers with Plot Twists</span><small>15 Films</small></div>
-      <div class="item"><span>Essential Sci-fi Cinema</span><small>12 Films</small></div>
+      <div class="item list-link" data-list="crime-drama"><span>Masterpiece Crime Drama</span><small>14 Films</small></div>
+      <div class="item list-link" data-list="psych-thrillers"><span>Psychological Thrillers with Plot Twists</span><small>12 Films</small></div>
+      <div class="item list-link" data-list="scifi-cinema"><span>Essential Sci-fi Cinema</span><small>13 Films</small></div>
     </div></section>
   </div>
 
@@ -104,7 +104,7 @@
         <h1>The Odyssey</h1>
         <p>A new epic arrives on Filmlify.</p>
         <p>R • Epic, Adventure • 2h 52m • 2026</p>
-        <p>After the Trojan War, Odysseus faces a dangerous voyage back to Ithaca.</p>
+        <p>After the Trojan War, Odysseus faces a dangerous voyage back to Ithaca. (Edit this text.)</p>
         <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
       </div>
     </section>
@@ -151,14 +151,14 @@
 
   <div class="two">
     <section class="block"><h2>Popular Directors</h2><div class="box">
-      <div class="item with-pic"><div class="pic tall" data-person="Denis Villeneuve"></div><p><b>Denis Villeneuve</b><br><small>Prisoners, Dune, Arrival</small></p><button class="btn small follow-btn" data-name="Denis Villeneuve">Follow</button></div>
-      <div class="item with-pic"><div class="pic tall" data-person="Christopher Nolan"></div><p><b>Christopher Nolan</b><br><small>Oppenheimer, Inception, Dark Knight</small></p><button class="btn small follow-btn" data-name="Christopher Nolan">Follow</button></div>
-      <div class="item with-pic"><div class="pic tall" data-person="Stanley Kubrick"></div><p><b>Stanley Kubrick</b><br><small>2001: A Space Odyssey, The Shining</small></p><button class="btn small follow-btn" data-name="Stanley Kubrick">Follow</button></div>
+      <div class="item with-pic list-link" data-director="Denis Villeneuve"><div class="pic tall" data-person="Denis Villeneuve"></div><p><b>Denis Villeneuve</b><br><small>Prisoners, Dune, Arrival</small></p><button class="btn small follow-btn" data-name="Denis Villeneuve">Follow</button></div>
+      <div class="item with-pic list-link" data-director="Christopher Nolan"><div class="pic tall" data-person="Christopher Nolan"></div><p><b>Christopher Nolan</b><br><small>Oppenheimer, Inception, Dark Knight</small></p><button class="btn small follow-btn" data-name="Christopher Nolan">Follow</button></div>
+      <div class="item with-pic list-link" data-director="Stanley Kubrick"><div class="pic tall" data-person="Stanley Kubrick"></div><p><b>Stanley Kubrick</b><br><small>2001: A Space Odyssey, The Shining</small></p><button class="btn small follow-btn" data-name="Stanley Kubrick">Follow</button></div>
     </div></section>
     <section class="block"><h2>Featured Movie Lists</h2><div class="box">
-      <div class="item"><span>Dark Thrillers &amp; Mystery Masterpiece</span><small>27 Films</small></div>
-      <div class="item"><span>Complete MCU Infinity Saga</span><small>23 Films</small></div>
-      <div class="item"><span>Neo-Noir Cinema Essential</span><small>30 Films</small></div>
+      <div class="item list-link" data-list="dark-thrillers"><span>Dark Thrillers &amp; Mystery Masterpiece</span><small>14 Films</small></div>
+      <div class="item list-link" data-list="mcu-infinity"><span>Complete MCU Infinity Saga</span><small>23 Films</small></div>
+      <div class="item list-link" data-list="neo-noir"><span>Neo-Noir Cinema Essential</span><small>14 Films</small></div>
     </div></section>
   </div>
 </div>
@@ -166,12 +166,77 @@
 <!-- ===================== TV SHOWS PAGE ===================== -->
 <div class="page" id="tv">
   <section class="block"><h2>Top 10 TV Shows</h2>
-    <div class="hero" data-title="Breaking Bad">
-      <h1>#1 Breaking Bad</h1>
-      <p>Created by Vince Gilligan</p>
-      <p>TV-MA • Crime, Drama • 5 Seasons • 2008-2013</p>
-      <p>A high school chemistry teacher diagnosed with terminal lung cancer turns to manufacturing and selling methamphetamine.</p>
-      <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+    <div class="slideshow" id="tvSlideshow">
+      <div class="hero active" data-title="Breaking Bad">
+        <h1>#1 Breaking Bad</h1>
+        <p>Created by Vince Gilligan</p>
+        <p>TV-MA • Crime, Drama • 5 Seasons • 2008-2013</p>
+        <p>A high school chemistry teacher diagnosed with terminal lung cancer turns to manufacturing and selling methamphetamine.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="The Sopranos">
+        <h1>#2 The Sopranos</h1>
+        <p>Created by David Chase</p>
+        <p>TV-MA • Crime, Drama • 6 Seasons • 1999-2007</p>
+        <p>New Jersey mob boss Tony Soprano struggles to balance his family life with running a criminal organization.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="The Wire">
+        <h1>#3 The Wire</h1>
+        <p>Created by David Simon</p>
+        <p>TV-MA • Crime, Drama • 5 Seasons • 2002-2008</p>
+        <p>The drug trade in Baltimore, seen through the eyes of both the police and the people on the streets.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="Band of Brothers">
+        <h1>#4 Band of Brothers</h1>
+        <p>Executive produced by Steven Spielberg &amp; Tom Hanks</p>
+        <p>TV-MA • War, Drama • Miniseries • 2001</p>
+        <p>The story of Easy Company, a paratrooper unit of the U.S. 101st Airborne, from training to the end of World War II.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="Game of Thrones">
+        <h1>#5 Game of Thrones</h1>
+        <p>Created by David Benioff &amp; D. B. Weiss</p>
+        <p>TV-MA • Fantasy, Drama • 8 Seasons • 2011-2019</p>
+        <p>Noble families fight for control of the Iron Throne while an ancient threat awakens beyond the Wall.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="Chernobyl">
+        <h1>#6 Chernobyl</h1>
+        <p>Created by Craig Mazin</p>
+        <p>TV-MA • Drama, History • Miniseries • 2019</p>
+        <p>The true story of the 1986 nuclear disaster and the people who risked everything to contain it.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="Better Call Saul">
+        <h1>#7 Better Call Saul</h1>
+        <p>Created by Vince Gilligan &amp; Peter Gould</p>
+        <p>TV-MA • Crime, Drama • 6 Seasons • 2015-2022</p>
+        <p>Small-time lawyer Jimmy McGill slowly becomes the criminal lawyer known as Saul Goodman.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="Mad Men">
+        <h1>#8 Mad Men</h1>
+        <p>Created by Matthew Weiner</p>
+        <p>TV-14 • Drama • 7 Seasons • 2007-2015</p>
+        <p>Inside a 1960s New York advertising agency, where brilliant ad man Don Draper hides a secret past.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="The Twilight Zone">
+        <h1>#9 The Twilight Zone</h1>
+        <p>Created by Rod Serling</p>
+        <p>TV-PG • Sci-Fi, Anthology • 5 Seasons • 1959-1964</p>
+        <p>An anthology of strange, thought-provoking stories that mix science fiction, fantasy, and suspense.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
+      <div class="hero" data-title="The Office">
+        <h1>#10 The Office (U.S.)</h1>
+        <p>Developed by Greg Daniels</p>
+        <p>TV-14 • Comedy • 9 Seasons • 2005-2013</p>
+        <p>A mockumentary crew follows the everyday lives of the quirky office workers at Dunder Mifflin in Scranton.</p>
+        <div><button class="btn add">Add to List</button> <button class="btn outline">More Info</button></div>
+      </div>
     </div>
   </section>
 
@@ -224,12 +289,12 @@
   </section>
 
   <section class="block"><h2>Filmlify Community Top Lists</h2><div class="three">
-    <div class="box"><small>Essential Drama ♥ 14.2k</small><h3>Shows with Perfect Series Finales</h3><small>by @wembaby • 12 Shows</small></div>
-    <div class="box"><small>Suspense ♥ 9.8k</small><h3>Mind-Bending Mystery &amp; Thrillers</h3><small>by @tyresehaliburnout • 15 Shows</small></div>
-    <div class="box"><small>Futuristic ♥ 4.8k</small><h3>Best Sci-Fi Worldbuilding</h3><small>by @lebwrongsend • 19 Shows</small></div>
-    <div class="box"><small>Masterpieces ♥ 3.2k</small><h3>Dark &amp; Gritty Crime Sagas</h3><small>by @kyrieyearning • 20 Shows</small></div>
-    <div class="box"><small>Anime &amp; Animation ♥ 16.6k</small><h3>Top-Tier Animated Sagas</h3><small>by @oganobatayo • 18 Shows</small></div>
-    <div class="box"><small>Limited Series ♥ 11.2k</small><h3>Peak TV Miniseries Masterpieces</h3><small>by @austinrebound • 10 Shows</small></div>
+    <div class="box list-link" data-list="perfect-finales"><small>Essential Drama ♥ 14.2k</small><h3>Shows with Perfect Series Finales</h3><small>by @wembaby • 13 Shows</small></div>
+    <div class="box list-link" data-list="mind-bending"><small>Suspense ♥ 9.8k</small><h3>Mind-Bending Mystery &amp; Thrillers</h3><small>by @tyresehaliburnout • 14 Shows</small></div>
+    <div class="box list-link" data-list="scifi-worldbuilding"><small>Futuristic ♥ 4.8k</small><h3>Best Sci-Fi Worldbuilding</h3><small>by @lebwrongsend • 15 Shows</small></div>
+    <div class="box list-link" data-list="crime-sagas"><small>Masterpieces ♥ 3.2k</small><h3>Dark &amp; Gritty Crime Sagas</h3><small>by @kyrieyearning • 14 Shows</small></div>
+    <div class="box list-link" data-list="animated-sagas"><small>Anime &amp; Animation ♥ 16.6k</small><h3>Top-Tier Animated Sagas</h3><small>by @oganobatayo • 15 Shows</small></div>
+    <div class="box list-link" data-list="miniseries"><small>Limited Series ♥ 11.2k</small><h3>Peak TV Miniseries Masterpieces</h3><small>by @austinrebound • 11 Shows</small></div>
   </div></section>
 </div>
 
@@ -452,6 +517,23 @@
 </footer>
 
 <!-- ===================== MOVIE POP-UP (opens when you click a poster) ===================== -->
+<div class="modal" id="listModal">
+  <div class="modal-box wide">
+    <button class="close" id="closeListModal" aria-label="Close">✕</button>
+    <div class="modal-top" id="lTop">
+      <div class="modal-poster" id="lPic" hidden></div>
+      <div>
+        <h2 id="lTitle"></h2>
+        <p><small id="lMeta"></small></p>
+        <p id="lDesc" style="margin:10px 0 0"></p>
+        <div id="lActions"></div>
+      </div>
+    </div>
+    <h3 id="lHeading"></h3>
+    <div class="list-grid" id="lGrid"></div>
+  </div>
+</div>
+
 <div class="modal" id="modal">
   <div class="modal-box">
     <button class="close" id="closeModal" aria-label="Close">✕</button>
