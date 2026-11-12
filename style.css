@@ -2236,15 +2236,17 @@ input:focus, select:focus, textarea:focus {
 
 
 /* ===== BROWSE PAGE: results wrap into a grid (so "Load more" adds rows below) ===== */
-.row.wrap {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    scroll-snap-type: none;
+#browseGrid.row.wrap {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+    scroll-snap-type: none !important;
+    gap: 22px 14px;
+    margin: 0;
+    padding: 6px 0 10px;
 }
 
-#browseGrid {
-    gap: 18px 14px;
-}
+#browse .slider { position: static; }
 
 #loadMore[hidden] {
     display: none;
