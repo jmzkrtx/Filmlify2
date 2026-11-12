@@ -1906,3 +1906,130 @@ input:focus, select:focus, textarea:focus {
         scroll-margin-top: 214px;
     }
 }
+
+/* ----- Top 10 TV Shows slideshow ----- */
+.slideshow {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.slideshow .hero {
+    display: none;
+    margin-bottom: 0;
+    min-height: 300px;
+}
+
+.slideshow .hero.active {
+    display: flex;
+    animation: slideFade 0.6s ease;
+}
+
+@keyframes slideFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.slide-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: #0b1124cc;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.slide-arrow:hover {
+    background: var(--accent);
+}
+
+.slide-arrow.prev { left: 12px; }
+.slide-arrow.next { right: 12px; }
+
+.slide-dots {
+    position: absolute;
+    right: 24px;
+    bottom: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+.slide-dots button {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background: #ffffff66;
+    cursor: pointer;
+}
+
+.slide-dots button.active {
+    background: #fff;
+    transform: scale(1.3);
+}
+
+@media (max-width: 700px) {
+    .slide-arrow { display: none; }
+    .slide-dots { right: 50%; transform: translateX(50%); }
+}
+
+
+/* ----- Clickable lists and directors ----- */
+.list-link {
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.list-link:hover, .list-link:focus-visible {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.list-link:focus-visible {
+    outline: 2px solid var(--accent);
+}
+
+.box.list-link h3 {
+    color: var(--accent);
+}
+
+#listModal .modal-box.wide {
+    max-width: 920px;
+}
+
+.list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 18px 16px;
+    padding: 6px 4px 10px;
+}
+
+.list-grid .card {
+    width: auto;
+}
+
+.list-note {
+    grid-column: 1 / -1;
+    opacity: 0.8;
+}
+
+#lPic[hidden] {
+    display: none;
+}
+
+#lActions {
+    margin-top: 12px;
+}
+
+#lDesc {
+    max-height: 150px;
+    overflow-y: auto;
+}
