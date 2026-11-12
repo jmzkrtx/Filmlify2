@@ -33,12 +33,13 @@ window.fetch = async function (url, options) {
 /* ============ 1. SHOW ONE PAGE AT A TIME ============ */
 // Each page is a <div class="page" id="...">. The link (#movies, #tv ...) decides which one shows.
 function showPage() {
-  var name = location.hash.replace("#", "") || "home";
+  var parts = location.hash.replace("#", "").split("/");      // "#member/anton123" -> ["member", "anton123"]
+  var name = parts[0] || "home";
   if (!document.getElementById(name)) { name = "home"; }
 
   // The Profile needs a login. The Login page is pointless if you are already logged in.
-  if ((name === "profile" || name === "people") && !currentUser()) {
-    returnTo = "#" + name;
+  if ((name === "profile" || name === "people" || name === "member") && !currentUser()) {
+    returnTo = location.hash || "#" + name;
     showMessage("Please log in to see this page.");
     location.hash = "#login";
     return;
@@ -50,11 +51,15 @@ function showPage() {
   });
 
   // Highlight the menu link (the login page highlights "Profile")
-  var menuName = (name === "login") ? "profile" : name;
+  var menuName = (name === "login") ? "profile" : (name === "member" ? "people" : name);
   document.querySelectorAll("nav a").forEach(function (link) {
     link.classList.toggle("active", link.getAttribute("href") === "#" + menuName);
   });
   window.scrollTo(0, 0);
+  if (name === "member") {                      // wait a moment so the rest of script.js has loaded
+    var who = decodeURIComponent(parts[1] || "");
+    setTimeout(function () { loadMember(who); }, 0);
+  }
 }
 window.addEventListener("hashchange", showPage);
 showPage();
@@ -786,7 +791,11 @@ document.addEventListener("click", function (e) {            // click anywhere e
 document.addEventListener("keydown", function (e) {
   if (e.key === "Escape") {
     hideSuggestions();
-    if (document.getElementById("modal").classList.contains("open")) { closeMovie(); } else { closeListModal(); }
+    var isOpen = function (id) { return document.getElementById(id).classList.contains("open"); };
+    if (isOpen("modal")) { closeMovie(); }
+    else if (isOpen("listModal")) { closeListModal(); }
+    else if (isOpen("peopleModal")) { closePeopleModal(); }
+    else if (isOpen("editModal")) { closeEditModal(); }
   }
 });
 
@@ -1291,33 +1300,21 @@ document.getElementById("mListAdd").onclick = function () {
   showMessage("Added to " + list.name + "!");
 };
 
-// Edit Profile (simple pop-up questions; your answers are saved in this browser)
+// Edit Profile (a pop-up form; your answers are saved in this browser and in the database)
 var me = currentUser();
 var profileInfo = {
   name: me ? (me.displayName || me.username) : "Guest",
-  handle: me ? (me.handle || "@" + me.username) : "",
-  bio: me ? (me.bio || "Film lover") : ""
+  bio: me ? (me.bio || "Film lover") : "",
+  avatar: ""
 };
 try { profileInfo = JSON.parse(localStorage.getItem(userKey("filmlify_profile"))) || profileInfo; } catch (e) {}
 function paintProfileInfo() {
+  var u = currentUser();
+  var handle = u ? "@" + u.username : "";
   document.getElementById("pName").textContent = profileInfo.name;
-  document.getElementById("pBio").textContent = profileInfo.handle + " • " + profileInfo.bio;
-  document.getElementById("pAvatar").textContent = profileInfo.name.charAt(0).toUpperCase();
+  document.getElementById("pBio").textContent = profileInfo.bio ? handle + " • " + profileInfo.bio : handle;
+  paintAvatar(document.getElementById("pAvatar"), profileInfo.avatar, profileInfo.name);
 }
-document.getElementById("editProfile").onclick = function () {
-  if (!requireLogin("edit your profile")) { return; }
-  var name = prompt("Your name:", profileInfo.name);
-  if (name === null) { return; }
-  var handle = prompt("Your username (like @name):", profileInfo.handle);
-  if (handle === null) { return; }
-  var bio = prompt("A short bio:", profileInfo.bio);
-  if (bio === null) { return; }
-  profileInfo = { name: name.trim() || profileInfo.name, handle: handle.trim(), bio: bio.trim() };
-  try { localStorage.setItem(userKey("filmlify_profile"), JSON.stringify(profileInfo)); } catch (e) {}
-  paintProfileInfo();
-  cloudUpdateProfile(profileInfo);
-  showMessage("Profile updated!");
-};
 paintProfileInfo();
 renderProfile();
 
@@ -1439,7 +1436,7 @@ function paintUserArea() {
   var name = document.createElement("a");
   name.className = "login-link";
   name.href = "#profile";
-  name.textContent = "👤 " + u.username;
+  name.textContent = u.username;
   var out = document.createElement("a");
   out.className = "login-link";
   out.href = "#";
@@ -1751,12 +1748,18 @@ async function toggleFollowUser(id, username) {
   } catch (e) { console.error(e); showMessage("Could not update. Please try again.", "error"); return; }
   await loadPeople();
   loadFriendFeed();
+  if (document.getElementById("peopleModal").classList.contains("open") && reloadPeopleModal) { reloadPeopleModal(); }
+  if (location.hash.indexOf("#member/") === 0) { loadMember(decodeURIComponent(location.hash.split("/")[1] || "")); }
 }
 
-// One row in a list of people
+// One row in a list of people: photo + name (click to open their profile) + Follow button
 function personRow(p) {
+  var me = currentUser();
   var row = document.createElement("div");
-  row.className = "item";
+  row.className = "item person-row";
+  var main = document.createElement("div");
+  main.className = "person-main";
+  main.appendChild(miniAvatar(p.avatar_url, p.display_name || p.username));
   var text = document.createElement("span");
   var name = document.createElement("b");
   name.textContent = p.display_name || p.username;
@@ -1765,12 +1768,16 @@ function personRow(p) {
   text.appendChild(name);
   text.appendChild(document.createElement("br"));
   text.appendChild(handle);
-  var button = document.createElement("button");
-  button.className = "btn small";
-  button.textContent = myFollowing.indexOf(p.id) >= 0 ? "Following ✓" : "Follow";
-  button.onclick = function () { toggleFollowUser(p.id, p.username); };
-  row.appendChild(text);
-  row.appendChild(button);
+  main.appendChild(text);
+  row.appendChild(main);
+  if (!me || p.id !== me.id) {
+    var button = document.createElement("button");
+    button.className = "btn small";
+    button.textContent = myFollowing.indexOf(p.id) >= 0 ? "Following ✓" : "Follow";
+    button.onclick = function (e) { e.stopPropagation(); toggleFollowUser(p.id, p.username); };
+    row.appendChild(button);
+  }
+  row.onclick = function () { openUserProfile(p.username, p.id); };
   return row;
 }
 function fillPeopleList(box, people, emptyText) {
@@ -1780,7 +1787,7 @@ function fillPeopleList(box, people, emptyText) {
 }
 async function profilesByIds(ids) {
   if (ids.length === 0) { return []; }
-  return await db("profiles?id=in.(" + ids.join(",") + ")&select=id,username,display_name");
+  return await db("profiles?id=in.(" + ids.join(",") + ")&select=" + profileCols());
 }
 
 async function searchPeople() {
@@ -1789,7 +1796,7 @@ async function searchPeople() {
   if (text.length < 2) { box.textContent = "Type at least 2 letters."; return; }
   try {
     var me = currentUser();
-    var found = await db("profiles?username=ilike.*" + encodeURIComponent(text) + "*&limit=10&select=id,username,display_name");
+    var found = await db("profiles?username=ilike.*" + encodeURIComponent(text) + "*&limit=10&select=" + profileCols());
     fillPeopleList(box, found.filter(function (p) { return p.id !== me.id; }), "Nobody found with that username.");
   } catch (e) { console.error(e); box.textContent = "Search failed. Please try again."; }
 }
@@ -1829,6 +1836,7 @@ async function loadFriendFeed() {
       var text = document.createElement("span");
       var who = document.createElement("b");
       who.textContent = "@" + (r.profiles ? r.profiles.username : "someone") + " ";
+      if (r.profiles) { who.className = "user-link"; who.dataset.user = r.profiles.username; }
       var stars = document.createElement("span");
       stars.className = "star";
       stars.textContent = starText(r.stars);
@@ -2011,6 +2019,7 @@ async function paintCommunityReviews() {
       var text = document.createElement("span");
       var who = document.createElement("b");
       who.textContent = "@" + (r.profiles ? r.profiles.username : "someone") + " ";
+      if (r.profiles) { who.className = "user-link"; who.dataset.user = r.profiles.username; }
       var stars = document.createElement("span");
       stars.className = "star";
       stars.textContent = starText(r.stars);
@@ -3255,7 +3264,7 @@ async function openList(id) {
 // ----- A director: photo, short biography, and the films they directed -----
 async function openDirector(name) {
   var token = ++listToken;
-  openListModal(name, "Director", "Films directed");
+  openListModal(name, "", "Known for");
   setGridNote("Loading...");
   var person = await searchPerson(name);
   if (token !== listToken) { return; }
@@ -3275,7 +3284,9 @@ async function openDirector(name) {
     var data = await response.json();
     if (token !== listToken) { return; }
 
-    var facts = ["Director"];
+    var isDirector = data.known_for_department === "Directing";
+    var facts = [isDirector ? "Director" : (data.known_for_department === "Acting" ? "Actor" : (data.known_for_department || "Film"))];
+    document.getElementById("lHeading").textContent = isDirector ? "Films directed" : "Known for";
     if (data.birthday) { facts.push("Born " + data.birthday.slice(0, 4)); }
     if (data.place_of_birth) { facts.push(data.place_of_birth); }
     document.getElementById("lMeta").textContent = facts.join(" • ");
@@ -3285,8 +3296,11 @@ async function openDirector(name) {
     document.getElementById("lDesc").textContent = bio || "No biography available.";
 
     var seen = {};
-    var films = ((data.movie_credits || {}).crew || []).filter(function (c) {
-      if (c.job !== "Director" || !c.poster_path || !c.release_date || seen[c.id]) { return false; }
+    var credits = (data.movie_credits || {})[isDirector ? "crew" : "cast"] || [];
+    var films = credits.filter(function (c) {
+      if (isDirector && c.job !== "Director") { return false; }
+      if (!isDirector && /\b(self|himself|herself)\b/i.test(c.character || "")) { return false; }   // skip documentaries and talk-show cameos
+      if (!c.poster_path || !c.release_date || seen[c.id]) { return false; }
       seen[c.id] = true;
       return true;
     }).sort(function (a, b) { return b.vote_count - a.vote_count; }).slice(0, 12);
@@ -3301,12 +3315,21 @@ async function openDirector(name) {
   }
 }
 
-// Clicking a list or a director (the follow button keeps doing its own job)
+// Open the pop-up of a movie/show by its name (used by Top News and Film Spotlight)
+async function openTitle(title) {
+  var found = await searchTMDB(title);
+  if (!found) { showMessage("Sorry, no details found for this title."); return; }
+  remember(found);
+  openMovie(found);
+}
+
+// Clicking a list, a director/actor, a news story or the spotlight
 document.addEventListener("click", function (e) {
   var link = e.target.closest(".list-link");
-  if (!link || e.target.closest(".follow-btn")) { return; }
+  if (!link || e.target.closest(".btn")) { return; }      // buttons inside (Follow, Add to List) keep doing their own job
   if (link.dataset.list) { openList(link.dataset.list); }
-  else if (link.dataset.director) { openDirector(link.dataset.director); }
+  else if (link.dataset.personName) { openDirector(link.dataset.personName); }
+  else if (link.dataset.movie) { openTitle(link.dataset.movie); }
 });
 
 // Make them reachable with the keyboard too (Tab, then Enter or Space)
@@ -3320,3 +3343,412 @@ document.querySelectorAll(".list-link").forEach(function (el) {
 
 document.getElementById("closeListModal").onclick = closeListModal;
 document.getElementById("listModal").onclick = function (e) { if (e.target === this) { closeListModal(); } };
+
+
+/* ============ EDIT PROFILE POP-UP, CLICKABLE STATS, OTHER PEOPLE'S PROFILES ============ */
+
+// ----- Profile pictures -----
+// A picture is a small square image kept as text (a data URL). It is saved in this browser, and in the
+// database too when your "profiles" table has an avatar_url column (see the note in the chat).
+var hasAvatarColumn = false;
+function profileCols() { return "id,username,display_name" + (hasAvatarColumn ? ",avatar_url" : ""); }
+
+function paintAvatar(el, url, name) {
+  el.classList.toggle("has-photo", !!url);
+  el.style.backgroundImage = url ? "url(" + url + ")" : "";
+  el.textContent = url ? "" : ((name || "?").charAt(0).toUpperCase());
+}
+function miniAvatar(url, name) {
+  var el = document.createElement("div");
+  el.className = "mini-avatar";
+  paintAvatar(el, url, name);
+  return el;
+}
+
+// Crop the chosen picture to a square and shrink it to 192 x 192
+function readAvatar(file) {
+  return new Promise(function (resolve, reject) {
+    if (!file || file.type.indexOf("image/") !== 0) { reject(new Error("Please choose an image file.")); return; }
+    if (file.size > 10 * 1024 * 1024) { reject(new Error("That image is too big (max 10 MB).")); return; }
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      var size = 192, canvas = document.createElement("canvas");
+      canvas.width = size; canvas.height = size;
+      var side = Math.min(img.width, img.height);
+      canvas.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("That image could not be opened. Try a JPG or PNG.")); };
+    img.src = url;
+  });
+}
+
+// Does the database have the avatar_url column? If yes, sync my picture and show other people's pictures.
+(async function () {
+  if (!CLOUD) { return; }
+  try {
+    await db("profiles?select=avatar_url&limit=1");
+    hasAvatarColumn = true;
+  } catch (e) { return; }                       // column missing: pictures stay on this device only
+  var u = currentUser();
+  if (u) {
+    try {
+      var rows = await db("profiles?id=eq." + u.id + "&select=avatar_url");
+      var cloudPic = rows[0] && rows[0].avatar_url;
+      if (cloudPic && !profileInfo.avatar) {
+        profileInfo.avatar = cloudPic;
+        try { localStorage.setItem(userKey("filmlify_profile"), JSON.stringify(profileInfo)); } catch (e) {}
+        paintProfileInfo();
+      } else if (!cloudPic && profileInfo.avatar) {
+        db("profiles?id=eq." + u.id, "PATCH", { avatar_url: profileInfo.avatar }, { Prefer: "return=minimal" }).catch(function () {});
+      }
+    } catch (e) { console.error(e); }
+  }
+  if (location.hash === "#people") { loadPeople(); }
+  if (location.hash.indexOf("#member/") === 0) { loadMember(decodeURIComponent(location.hash.split("/")[1] || "")); }
+})();
+
+// ----- Edit Profile pop-up -----
+var editAvatarValue = "";
+function closeEditModal() { document.getElementById("editModal").classList.remove("open"); }
+function editBioCount() {
+  var len = document.getElementById("editBio").value.length;
+  document.getElementById("editBioCount").textContent = len + " / 160";
+}
+
+document.getElementById("editProfile").onclick = function () {
+  if (!requireLogin("edit your profile")) { return; }
+  var u = currentUser();
+  editAvatarValue = profileInfo.avatar || "";
+  document.getElementById("editName").value = profileInfo.name;
+  document.getElementById("editUsername").value = u.username;
+  document.getElementById("editBio").value = profileInfo.bio === "Film lover" && !localStorage.getItem(userKey("filmlify_profile")) ? "" : profileInfo.bio;
+  document.getElementById("editError").textContent = "";
+  paintAvatar(document.getElementById("editAvatar"), editAvatarValue, profileInfo.name);
+  editBioCount();
+  document.getElementById("editModal").classList.add("open");
+  document.getElementById("editName").focus();
+};
+document.getElementById("closeEditModal").onclick = closeEditModal;
+document.getElementById("editCancel").onclick = closeEditModal;
+document.getElementById("editModal").onclick = function (e) { if (e.target === this) { closeEditModal(); } };
+document.getElementById("editBio").addEventListener("input", editBioCount);
+document.getElementById("editName").addEventListener("input", function () {
+  if (!editAvatarValue) { paintAvatar(document.getElementById("editAvatar"), "", this.value); }
+});
+
+document.getElementById("editPhotoBtn").onclick = function () { document.getElementById("editPhotoFile").click(); };
+document.getElementById("editPhotoFile").onchange = async function () {
+  var file = this.files[0];
+  this.value = "";
+  if (!file) { return; }
+  try {
+    editAvatarValue = await readAvatar(file);
+    paintAvatar(document.getElementById("editAvatar"), editAvatarValue, document.getElementById("editName").value);
+    document.getElementById("editError").textContent = "";
+  } catch (error) { document.getElementById("editError").textContent = error.message; }
+};
+document.getElementById("editPhotoRemove").onclick = function () {
+  editAvatarValue = "";
+  paintAvatar(document.getElementById("editAvatar"), "", document.getElementById("editName").value);
+};
+
+// Moves a person's saved data (reviews, watchlist...) to their new username
+function renameLocalData(oldName, newName) {
+  var moves = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (k.indexOf("filmlify") === 0 && k.slice(-(oldName.length + 1)) === ":" + oldName) { moves.push(k); }
+  }
+  moves.forEach(function (k) {
+    localStorage.setItem(k.slice(0, -oldName.length) + newName, localStorage.getItem(k));
+    localStorage.removeItem(k);
+  });
+}
+
+document.getElementById("editSave").onclick = async function () {
+  var u = currentUser();
+  if (!u) { return; }
+  var errorBox = document.getElementById("editError");
+  var saveButton = this;
+  var name = document.getElementById("editName").value.trim();
+  var username = document.getElementById("editUsername").value.trim().replace(/^@/, "").toLowerCase();
+  var bio = document.getElementById("editBio").value.trim();
+  errorBox.textContent = "";
+
+  if (!name) { errorBox.textContent = "Please enter a display name."; return; }
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) { errorBox.textContent = "Username: 3-20 letters, numbers or _ only."; return; }
+
+  var usernameChanged = username !== u.username;
+  saveButton.disabled = true;
+  saveButton.textContent = "Saving...";
+  try {
+    // 1. the username must be free
+    if (usernameChanged) {
+      if (CLOUD) {
+        var taken = await db("profiles?username=eq." + encodeURIComponent(username) + "&select=id");
+        if (taken.length && taken[0].id !== u.id) { errorBox.textContent = "That username is already taken."; return; }
+      } else if (accounts().some(function (a) { return a.username === username; })) {
+        errorBox.textContent = "That username is already taken."; return;
+      }
+    }
+
+    // 2. save to the database
+    if (CLOUD) {
+      var changes = { display_name: name, bio: bio };
+      if (usernameChanged) { changes.username = username; }
+      try {
+        await db("profiles?id=eq." + u.id, "PATCH", changes, { Prefer: "return=minimal" });
+      } catch (e) {
+        console.error(e);
+        errorBox.textContent = /duplicate|23505|unique/i.test(String(e.message)) ? "That username is already taken." : "Could not save to the database. Please try again.";
+        return;
+      }
+      if (hasAvatarColumn) {
+        db("profiles?id=eq." + u.id, "PATCH", { avatar_url: editAvatarValue || null }, { Prefer: "return=minimal" }).catch(function (e) { console.error(e); });
+      }
+      var session = cloudSession();
+      if (session) {
+        session.displayName = name; session.bio = bio; session.username = username;
+        localStorage.setItem("filmlify_cloud", JSON.stringify(session));
+      }
+    }
+
+    // 3. save in this browser (under the OLD username key first, then move everything to the new name)
+    profileInfo = { name: name, bio: bio, avatar: editAvatarValue };
+    try { localStorage.setItem("filmlify_profile:" + u.username, JSON.stringify(profileInfo)); } catch (e) {
+      errorBox.textContent = "The photo is too large for this browser to save. Try a smaller picture."; return;
+    }
+    if (usernameChanged) {
+      renameLocalData(u.username, username);
+      if (!CLOUD) {
+        var all = accounts();
+        var account = all.find(function (a) { return a.username === u.username; });
+        if (account) { account.username = username; localStorage.setItem("filmlify_accounts", JSON.stringify(all)); }
+        localStorage.setItem("filmlify_session", username);
+      }
+      sessionStorage.setItem("flash", "Profile updated! You are now @" + username + ".");
+      sessionStorage.setItem("goto", "#profile");
+      location.reload();                        // reloads so everything uses the new username
+      return;
+    }
+    paintProfileInfo();
+    closeEditModal();
+    showMessage("Profile updated!");
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = "Save changes";
+  }
+};
+
+// ----- Lists of people (Followers / Following) -----
+var reloadPeopleModal = null;
+function closePeopleModal() { document.getElementById("peopleModal").classList.remove("open"); reloadPeopleModal = null; }
+document.getElementById("closePeopleModal").onclick = closePeopleModal;
+document.getElementById("peopleModal").onclick = function (e) { if (e.target === this) { closePeopleModal(); } };
+
+// title + a function that fills the box. The function is kept so the list can refresh after Follow / Unfollow.
+function openPeopleModal(title, fill) {
+  var body = document.getElementById("pmBody");
+  document.getElementById("pmTitle").textContent = title;
+  document.getElementById("peopleModal").classList.add("open");
+  var run = async function () {
+    try { await fill(body); }
+    catch (e) { console.error(e); body.textContent = "Sorry, this list could not be loaded. Please try again."; }
+  };
+  reloadPeopleModal = run;
+  body.replaceChildren(spinner());
+  run();
+}
+
+// Go to someone's profile (your own name goes to your own Profile page)
+function openUserProfile(username, id) {
+  closePeopleModal();
+  closeMovie();
+  closeListModal();
+  var u = currentUser();
+  if (u && (u.id === id || u.username === username)) { location.hash = "#profile"; }
+  else { location.hash = "#member/" + encodeURIComponent(username); }
+}
+document.addEventListener("click", function (e) {
+  var link = e.target.closest("[data-user]");
+  if (link) { openUserProfile(link.dataset.user); }
+});
+
+function fillStarsFollowed(body) {
+  var stars = getList("filmlify_following");
+  if (stars.length === 0) { return; }
+  var heading = document.createElement("h3");
+  heading.textContent = "Stars";
+  body.appendChild(heading);
+  stars.forEach(function (starName) {
+    var row = document.createElement("div");
+    row.className = "item person-row";
+    var main = document.createElement("div");
+    main.className = "person-main";
+    main.appendChild(miniAvatar("", starName));
+    var label = document.createElement("b");
+    label.textContent = starName;
+    main.appendChild(label);
+    var button = document.createElement("button");
+    button.className = "btn small follow-btn";
+    button.dataset.name = starName;
+    row.appendChild(main);
+    row.appendChild(button);
+    row.onclick = function (e) { if (!e.target.closest(".btn")) { openDirector(starName); } };
+    body.appendChild(row);
+  });
+  paintFollowButtons();
+}
+
+async function openMyFollowers() {
+  if (!requireLogin("see your followers")) { return; }
+  openPeopleModal("Followers", async function (body) {
+    if (!CLOUD) { body.textContent = "The accounts database is not connected yet."; return; }
+    await refreshFollowing();
+    fillPeopleList(body, await profilesByIds(myFollowers), "No followers yet.");
+  });
+}
+async function openMyFollowing() {
+  if (!requireLogin("see who you follow")) { return; }
+  openPeopleModal("Following", async function (body) {
+    var people = [];
+    if (CLOUD) { await refreshFollowing(); people = await profilesByIds(myFollowing); }
+    body.replaceChildren();
+    if (people.length) {
+      var heading = document.createElement("h3");
+      heading.textContent = "People";
+      body.appendChild(heading);
+      people.forEach(function (p) { body.appendChild(personRow(p)); });
+    }
+    fillStarsFollowed(body);
+    if (!body.children.length) { body.textContent = "You are not following anyone yet."; }
+  });
+}
+
+function scrollToSection(el) {
+  var section = el.closest(".block") || el;
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+  section.classList.remove("flash-section");
+  void section.offsetWidth;                      // restarts the highlight animation
+  section.classList.add("flash-section");
+}
+
+// Click the numbers at the top of your Profile
+document.querySelectorAll("#profile .stat-link").forEach(function (el) {
+  el.tabIndex = 0;
+  el.setAttribute("role", "button");
+  var go = function () {
+    var what = el.dataset.stat;
+    if (what === "followers") { openMyFollowers(); }
+    else if (what === "following") { openMyFollowing(); }
+    else if (what === "watched") { scrollToSection(document.getElementById("watchedRow")); }
+    else if (what === "watchlist") { scrollToSection(document.getElementById("watchlistRow")); }
+    else if (what === "reviews") { scrollToSection(document.getElementById("reviewList")); }
+  };
+  el.onclick = go;
+  el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+});
+
+// ----- Another person's profile page (#member/username) -----
+var memberToken = 0;
+async function loadMember(username) {
+  var token = ++memberToken;
+  var u = currentUser();
+  var nameEl = document.getElementById("uName");
+  var bioEl = document.getElementById("uBio");
+  var followBtn = document.getElementById("uFollow");
+  var reviewsBox = document.getElementById("uReviews");
+  if (!u || !username) { return; }
+  if (u.username === username) { location.replace("#profile"); return; }
+
+  if (!CLOUD) { nameEl.textContent = "Not available"; bioEl.textContent = "The accounts database is not connected yet."; followBtn.hidden = true; return; }
+
+  followBtn.hidden = true;
+  nameEl.textContent = "Loading...";
+  bioEl.textContent = "";
+  paintAvatar(document.getElementById("uAvatar"), "", "?");
+  reviewsBox.replaceChildren(spinner());
+  ["uStatFollowers", "uStatFollowing", "uStatReviews"].forEach(function (id) { document.getElementById(id).textContent = "0"; });
+
+  try {
+    var rows = await db("profiles?username=eq." + encodeURIComponent(username) + "&select=" + profileCols() + ",bio");
+    if (token !== memberToken) { return; }
+    if (rows.length === 0) {
+      nameEl.textContent = "User not found";
+      bioEl.textContent = "Nobody has the username @" + username + ".";
+      reviewsBox.replaceChildren();
+      return;
+    }
+    var p = rows[0];
+    nameEl.textContent = p.display_name || p.username;
+    bioEl.textContent = p.bio ? "@" + p.username + " • " + p.bio : "@" + p.username;
+    paintAvatar(document.getElementById("uAvatar"), p.avatar_url, p.display_name || p.username);
+
+    await refreshFollowing();
+    if (token !== memberToken) { return; }
+    var isFollowing = myFollowing.indexOf(p.id) >= 0;
+    followBtn.hidden = false;
+    followBtn.textContent = isFollowing ? "Following ✓" : "Follow";
+    followBtn.onclick = function () { toggleFollowUser(p.id, p.username); };
+
+    var results = await Promise.all([
+      db("follows?following=eq." + p.id + "&select=follower"),
+      db("follows?follower=eq." + p.id + "&select=following"),
+      db("reviews?user_id=eq." + p.id + "&select=*&order=created_at.desc&limit=30")
+    ]);
+    if (token !== memberToken) { return; }
+    var followerIds = results[0].map(function (r) { return r.follower; });
+    var followingIds = results[1].map(function (r) { return r.following; });
+    var reviews = results[2];
+
+    document.getElementById("uStatFollowers").textContent = followerIds.length;
+    document.getElementById("uStatFollowing").textContent = followingIds.length;
+    document.getElementById("uStatReviews").textContent = reviews.length;
+
+    document.querySelectorAll("#member .stat-link").forEach(function (el) {
+      el.tabIndex = 0;
+      el.setAttribute("role", "button");
+      var go = function () {
+        var followers = el.dataset.ustat === "followers";
+        openPeopleModal((p.display_name || p.username) + (followers ? "'s Followers" : " is Following"), async function (body) {
+          await refreshFollowing();
+          fillPeopleList(body, await profilesByIds(followers ? followerIds : followingIds), followers ? "No followers yet." : "Not following anyone yet.");
+        });
+      };
+      el.onclick = go;
+      el.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
+    });
+
+    reviewsBox.replaceChildren();
+    if (reviews.length === 0) { reviewsBox.textContent = "@" + p.username + " has not written any reviews yet."; return; }
+    reviews.forEach(function (r) {
+      var row = document.createElement("div");
+      row.className = "item with-pic";
+      var pic = document.createElement("div");
+      pic.className = "pic tall";
+      if (r.poster) { pic.classList.add("has-image"); pic.style.backgroundImage = "url(" + POSTER_URL + r.poster + ")"; }
+      var text = document.createElement("span");
+      var title = document.createElement("b");
+      title.textContent = r.title + " ";
+      var stars = document.createElement("span");
+      stars.className = "star";
+      stars.textContent = starText(r.stars);
+      text.appendChild(title);
+      text.appendChild(stars);
+      if (r.body) { text.appendChild(document.createElement("br")); text.appendChild(document.createTextNode(r.body)); }
+      var date = document.createElement("small");
+      date.textContent = new Date(r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+      text.appendChild(document.createElement("br"));
+      text.appendChild(date);
+      row.appendChild(pic);
+      row.appendChild(text);
+      reviewsBox.appendChild(row);
+    });
+  } catch (e) {
+    console.error("Could not load profile:", e);
+    if (token === memberToken) { nameEl.textContent = "Something went wrong"; bioEl.textContent = "Could not load this profile. Please try again."; reviewsBox.replaceChildren(); }
+  }
+}
