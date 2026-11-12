@@ -2182,3 +2182,54 @@ input:focus, select:focus, textarea:focus {
 .slot-poster.static {
     cursor: default;
 }
+
+
+/* ===== NEW EPISODES THIS WEEK: scrollable list ===== */
+.two > section { min-width: 0; }
+
+#episodeList {
+    max-height: 430px;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+    overscroll-behavior: contain;
+}
+
+#episodeList::-webkit-scrollbar { width: 8px; }
+#episodeList::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 8px; }
+#episodeList::-webkit-scrollbar-track { background: transparent; }
+
+#episodeList .item.with-pic > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* ===== TOP 10 TV SLIDESHOW: layout fixes ===== */
+/* keep text clear of the side arrows on desktop */
+.slideshow .hero { padding-left: 64px; padding-right: 64px; }
+
+@media (max-width: 700px) {
+    .slideshow .hero {
+        min-height: 0;
+        padding: 22px 18px 52px;   /* extra room at the bottom for the dots */
+        gap: 8px;
+    }
+
+    .slideshow .hero h1 { font-size: 1.6rem; line-height: 1.15; }
+    .slideshow .hero p { font-size: 0.9rem; line-height: 1.4; }
+
+    .slideshow .hero > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .slideshow .hero .btn { margin: 0; padding: 8px 14px; font-size: 0.9rem; }
+
+    .slide-dots {
+        bottom: 18px;
+        gap: 7px;
+    }
+}
