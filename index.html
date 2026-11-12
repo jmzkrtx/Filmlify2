@@ -32,7 +32,7 @@
       <input id="search" type="search" placeholder="Search movies, shows, actors..." autocomplete="off">
       <div id="suggestions"></div>   <!-- the drop-down list is filled by script.js -->
     </div>
-    <span id="userArea"><a class="login-link" href="#login">👤 Login / Sign up</a></span>   <!-- script.js shows your name + Log out here after login -->
+    <span id="userArea"><a class="login-link" href="#login">Login / Sign up</a></span>   <!-- script.js shows your name + Log out here after login -->
   </div>
 </header>
 
@@ -67,7 +67,6 @@
   <div class="two">
     <section class="block"><h2>Friend Activity</h2>
       <div class="empty" id="friendFeed">
-        <div class="empty-icon">👥</div>
         <p><b>No friend activity yet</b></p>
         <p><small>Follow friends to see their reviews and what they are watching here.</small></p>
       </div>
@@ -82,9 +81,9 @@
   <div class="two">
     <section class="block"><h2>Top News</h2>
       <!-- Each news picture comes from TMDB: data-title = a movie/show poster, data-person = a person's photo -->
-      <div class="item with-pic"><div class="pic tall" data-person="Inde Navarrette"></div><b>'Obsession' Star Inde Navarrette Receives IMDb Breakout Award</b></div>
-      <div class="item with-pic"><div class="pic tall" data-title="Monster: The Lizzie Borden Story"></div><b>Netflix's 'Monster' Delivers an Engaging Season</b></div>
-      <div class="item with-pic"><div class="pic tall" data-title="Spider-Man: Brand New Day"></div><b>'Spider-Man: Brand New Day' Becomes Highest-Grossing Opener</b></div>
+      <div class="item with-pic list-link" data-person-name="Inde Navarrette"><div class="pic tall" data-person="Inde Navarrette"></div><b>'Obsession' Star Inde Navarrette Receives IMDb Breakout Award</b></div>
+      <div class="item with-pic list-link" data-movie="Monster: The Lizzie Borden Story"><div class="pic tall" data-title="Monster: The Lizzie Borden Story"></div><b>Netflix's 'Monster' Delivers an Engaging Season</b></div>
+      <div class="item with-pic list-link" data-movie="Spider-Man: Brand New Day"><div class="pic tall" data-title="Spider-Man: Brand New Day"></div><b>'Spider-Man: Brand New Day' Becomes Highest-Grossing Opener</b></div>
     </section>
     <section class="block"><h2>Trending People</h2><div class="row people" id="peopleRow">
       <!-- These are shown until TMDB sends the real trending people -->
@@ -138,7 +137,7 @@
       <div class="card"><div class="poster"></div><b>Avengers: Doomsday</b><small>December 18, 2026</small></div>
       <div class="card"><div class="poster"></div><b>Jumanji: Open World</b><small>December 25, 2026</small></div>
     </div></section>
-    <section class="block"><h2>Film Spotlight</h2><div class="box spotlight" data-title="Oppenheimer">
+    <section class="block"><h2>Film Spotlight</h2><div class="box spotlight list-link" data-title="Oppenheimer" data-movie="Oppenheimer">
       <div class="spot-row">
         <div class="pic big" data-title="Oppenheimer"></div>
         <div>
@@ -151,9 +150,9 @@
 
   <div class="two">
     <section class="block"><h2>Popular Directors</h2><div class="box">
-      <div class="item with-pic list-link" data-director="Denis Villeneuve"><div class="pic tall" data-person="Denis Villeneuve"></div><p><b>Denis Villeneuve</b><br><small>Prisoners, Dune, Arrival</small></p><button class="btn small follow-btn" data-name="Denis Villeneuve">Follow</button></div>
-      <div class="item with-pic list-link" data-director="Christopher Nolan"><div class="pic tall" data-person="Christopher Nolan"></div><p><b>Christopher Nolan</b><br><small>Oppenheimer, Inception, Dark Knight</small></p><button class="btn small follow-btn" data-name="Christopher Nolan">Follow</button></div>
-      <div class="item with-pic list-link" data-director="Stanley Kubrick"><div class="pic tall" data-person="Stanley Kubrick"></div><p><b>Stanley Kubrick</b><br><small>2001: A Space Odyssey, The Shining</small></p><button class="btn small follow-btn" data-name="Stanley Kubrick">Follow</button></div>
+      <div class="item with-pic list-link" data-person-name="Denis Villeneuve"><div class="pic tall" data-person="Denis Villeneuve"></div><p><b>Denis Villeneuve</b><br><small>Prisoners, Dune, Arrival</small></p><button class="btn small follow-btn" data-name="Denis Villeneuve">Follow</button></div>
+      <div class="item with-pic list-link" data-person-name="Christopher Nolan"><div class="pic tall" data-person="Christopher Nolan"></div><p><b>Christopher Nolan</b><br><small>Oppenheimer, Inception, Dark Knight</small></p><button class="btn small follow-btn" data-name="Christopher Nolan">Follow</button></div>
+      <div class="item with-pic list-link" data-person-name="Stanley Kubrick"><div class="pic tall" data-person="Stanley Kubrick"></div><p><b>Stanley Kubrick</b><br><small>2001: A Space Odyssey, The Shining</small></p><button class="btn small follow-btn" data-name="Stanley Kubrick">Follow</button></div>
     </div></section>
     <section class="block"><h2>Featured Movie Lists</h2><div class="box">
       <div class="item list-link" data-list="dark-thrillers"><span>Dark Thrillers &amp; Mystery Masterpiece</span><small>14 Films</small></div>
@@ -375,8 +374,8 @@
       <button class="btn small" id="editProfile">Edit Profile</button>   <!-- your handle and bio -->
     </div>
     <div class="stats">                              <!-- these numbers count up by themselves (see script.js) -->
-      <div><b id="statFollowers">0</b>Followers</div><div><b id="statFollowing">0</b>Following</div><div><b id="statWatched">0</b>Watched</div>
-      <div><b id="statReviews">0</b>Reviews</div><div><b id="statWatchlist">0</b>Watchlist</div>
+      <div class="stat-link" data-stat="followers"><b id="statFollowers">0</b>Followers</div><div class="stat-link" data-stat="following"><b id="statFollowing">0</b>Following</div><div class="stat-link" data-stat="watched"><b id="statWatched">0</b>Watched</div>
+      <div class="stat-link" data-stat="reviews"><b id="statReviews">0</b>Reviews</div><div class="stat-link" data-stat="watchlist"><b id="statWatchlist">0</b>Watchlist</div>
     </div>
   </div>
 
@@ -428,6 +427,27 @@
     <section class="block"><h2>Following</h2><div id="followingList"></div></section>
     <section class="block"><h2>Followers</h2><div id="followersList"></div></section>
   </div>
+</div>
+
+<!-- ===================== MEMBER PAGE (another user's profile) ===================== -->
+<div class="page" id="member">
+  <p><a href="#people">&lsaquo; Back to People</a></p>
+  <div class="box profile-top">
+    <div class="avatar" id="uAvatar"></div>
+    <div>
+      <h1 id="uName">Loading...</h1>
+      <p><small id="uBio"></small></p>
+      <button class="btn small" id="uFollow" hidden>Follow</button>
+    </div>
+    <div class="stats">
+      <div class="stat-link" data-ustat="followers"><b id="uStatFollowers">0</b>Followers</div>
+      <div class="stat-link" data-ustat="following"><b id="uStatFollowing">0</b>Following</div>
+      <div><b id="uStatReviews">0</b>Reviews</div>
+    </div>
+  </div>
+  <section class="block"><h2>Recent Reviews</h2>
+    <div id="uReviews"></div>
+  </section>
 </div>
 
 <!-- ===================== BROWSE PAGE (filters) ===================== -->
@@ -517,6 +537,48 @@
 </footer>
 
 <!-- ===================== MOVIE POP-UP (opens when you click a poster) ===================== -->
+<div class="modal" id="editModal">
+  <div class="modal-box edit-box">
+    <button class="close" id="closeEditModal" aria-label="Close">✕</button>
+    <h2>Edit Profile</h2>
+
+    <div class="edit-photo">
+      <div class="avatar" id="editAvatar"></div>
+      <div class="edit-photo-actions">
+        <button type="button" class="btn small" id="editPhotoBtn">Change photo</button>
+        <button type="button" class="btn small outline" id="editPhotoRemove">Remove</button>
+        <small>JPG or PNG. It is cropped to a square.</small>
+        <input type="file" id="editPhotoFile" accept="image/*" hidden>
+      </div>
+    </div>
+
+    <label for="editName">Display name</label>
+    <input type="text" id="editName" maxlength="40" autocomplete="off">
+
+    <label for="editUsername">Username</label>
+    <div class="edit-username"><span>@</span><input type="text" id="editUsername" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <small>3-20 letters, numbers or _ &mdash; people find you with this.</small>
+
+    <label for="editBio">Bio</label>
+    <textarea id="editBio" maxlength="160" placeholder="Tell people what you love to watch..."></textarea>
+    <small id="editBioCount">0 / 160</small>
+
+    <p class="edit-error" id="editError" role="alert"></p>
+    <div class="edit-actions">
+      <button type="button" class="btn outline" id="editCancel">Cancel</button>
+      <button type="button" class="btn" id="editSave">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="peopleModal">
+  <div class="modal-box edit-box">
+    <button class="close" id="closePeopleModal" aria-label="Close">✕</button>
+    <h2 id="pmTitle"></h2>
+    <div id="pmBody"></div>
+  </div>
+</div>
+
 <div class="modal" id="listModal">
   <div class="modal-box wide">
     <button class="close" id="closeListModal" aria-label="Close">✕</button>
